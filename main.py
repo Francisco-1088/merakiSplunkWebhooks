@@ -11,7 +11,10 @@ for org in organizations:
         org_id = org['id']
 
 if org_id:
-    networks = dashboard.organizations.getOrganizationNetworks(org_id)
+    if config.tag!="":
+        networks = dashboard.organizations.getOrganizationNetworks(org_id, tags=config.tag)
+    else:
+        networks = dashboard.organizations.getOrganizationNetworks(org_id)
 
 for net in networks:
     body = '''
@@ -53,7 +56,7 @@ for net in networks:
 
     result = dashboard.networks.createNetworkWebhooksPayloadTemplate(
         networkId=net['id'],
-        name="Splunk",
+        name=f"Splunk_{net['id']}",
         body=body,
         headers=headers,
     )
@@ -62,10 +65,11 @@ for net in networks:
         "sharedSecret": config.splunk_webhook_auth,
         "payloadTemplate": {
             "payloadTemplateId": result['payloadTemplateId'],
-            "name": config.splunk_webhook_name,
+            "name": f"Splunk_{net['id']}",
         }
     }
-    dashboard.networks.create
+
+    
     dashboard.networks.createNetworkWebhooksHttpServer(
         networkId=net['id'],
         name=config.splunk_webhook_name,
